@@ -1,3 +1,5 @@
+import tactic.basic
+
 namespace json
 
 universe u
@@ -27,6 +29,22 @@ instance : functor parser := {
   map := @json.fmap
 }
 
+def pure {α : Type u} (a : α) : parser α :=
+  parser.mk $ λ input, some (input, a)
+
+def seq {α β : Type u} : parser (α → β) → parser α → parser β
+| ⟨ p1 ⟩ ⟨ p2 ⟩ := parser.mk $ λ input, do
+  (input', f) ← p1 input,
+  (input'', a) ← p2 input',
+  some (input'', f a)
+
+instance : applicative parser := {
+  pure := @json.pure,
+  seq := @json.seq,
+}
+
+section parsers
+
 def char_p (c : char) : parser char :=
   parser.mk $ λ input,
   match input with
@@ -36,5 +54,7 @@ def char_p (c : char) : parser char :=
 
 #eval parser.runParser (char_p 'n') "nice".to_list
 #eval parser.runParser (char_p 'n') "".to_list
+
+end parsers
 
 end json
