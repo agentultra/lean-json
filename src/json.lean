@@ -1,6 +1,9 @@
+import category.traversable
 import tactic.basic
 
 namespace json
+
+open functor
 
 universe u
 
@@ -54,6 +57,18 @@ def char_p (c : char) : parser char :=
 
 #eval parser.runParser (char_p 'n') "nice".to_list
 #eval parser.runParser (char_p 'n') "".to_list
+
+def string_p : list char → parser (list char) := traverse char_p
+
+#eval parser.runParser (string_p "nice".to_list) "nice".to_list
+#eval parser.runParser (string_p "nice".to_list) "nice foobar".to_list
+#eval parser.runParser (string_p "nice".to_list) "".to_list
+
+def parse_null : parser value := value.null <$ string_p "null".to_list
+
+#check parser.runParser parse_null "null".to_list
+
+def parse_value : parser value := parse_null
 
 end parsers
 
