@@ -88,7 +88,12 @@ def parse_bool : parser value :=
  (value.bool true <$ string_p "true".to_list) <|>
  (value.bool false <$ string_p "false".to_list)
 
-def parse_value : parser value := parse_null <|> parse_bool
+def parse_string : parser value :=
+  value.string <$> (char_p '"' *> (to_string <$> span_p (≠ '"')) <* char_p '"')
+
+#check parser.runParser parse_string "\"foobar\"".to_list
+
+def parse_value : parser value := parse_null <|> parse_bool <|> parse_string
 
 end parsers
 
