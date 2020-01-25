@@ -41,9 +41,20 @@ def seq {α β : Type u} : parser (α → β) → parser α → parser β
   (input'', a) ← p2 input',
   some (input'', f a)
 
+def orelse {α : Type u} : parser α → parser α → parser α
+| ⟨ p1 ⟩ ⟨ p2 ⟩ := parser.mk $ λ input, do
+  (p1 input) <|> (p2 input)
+
+def failure (α : Type u) : parser α := parser.mk $ λ _, none
+
 instance : applicative parser := {
   pure := @json.pure,
   seq := @json.seq,
+}
+
+instance : alternative parser := {
+  orelse := @json.orelse,
+  failure := @json.failure,
 }
 
 section parsers
@@ -68,7 +79,11 @@ def parse_null : parser value := value.null <$ string_p "null".to_list
 
 #check parser.runParser parse_null "null".to_list
 
-def parse_value : parser value := parse_null
+def parse_bool : parser value :=
+ (value.bool true <$ string_p "true".to_list) <|>
+ (value.bool false <$ string_p "false".to_list)
+
+def parse_value : parser value := parse_null <|> parse_bool
 
 end parsers
 
