@@ -75,6 +75,11 @@ def string_p : list char → parser (list char) := traverse char_p
 #eval parser.runParser (string_p "nice".to_list) "nice foobar".to_list
 #eval parser.runParser (string_p "nice".to_list) "".to_list
 
+def span_p (p : char → Prop) [decidable_pred p] : parser (list char) :=
+  parser.mk $ λ input,
+  let (token, rest) := input.span p
+  in some (rest, token)
+
 def parse_null : parser value := value.null <$ string_p "null".to_list
 
 #check parser.runParser parse_null "null".to_list
